@@ -1,0 +1,10 @@
+package com.basecodes;
+
+
+
+public class BinarySearch {
+	
+	private static int binarySearchIndex (int arr[], int target) {
+		return -1;
+	}
+}

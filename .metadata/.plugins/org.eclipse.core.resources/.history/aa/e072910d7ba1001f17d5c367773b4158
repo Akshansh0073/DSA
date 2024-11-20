@@ -1,0 +1,78 @@
+com:
+  ixnixi:
+    jwtExpirationMs: 86400000
+    jwtSecret: exampleSecretKey
+security:
+  basic:
+    enabled: true
+server:
+  port: 8085
+  servlet:
+   context-path: /ixnixi
+spring:
+  datasource:
+  
+   #Local Database
+
+3
+ # Live Database
+    
+     url: jdbc:mysql://139.162.206.153:3306/nixi_exchange?useSSL=false
+     username: unixi
+     password: de7HiWdDm
+
+     driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    generate-ddl: true
+    properties:
+     hibernate:
+      dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+      show-sql: false
+    hibernate:
+      id:
+        new_generator_mappings: false
+  mail:
+    host: smtp.gmail.com
+    username: osihar.yadav@brsoftech.org
+    password: BR@123456
+    port: 587
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  main:
+    allow-circular-references: true
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 100MB
+      max-request-size: 100MB
+      
+#    management:
+#  endpoints:
+#    enabled-by-default: true
+#  endpoint:
+#    info:
+#      enabled: true
+#  
+#  management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: "*"  # Expose all actuator endpoints
+#  endpoint:
+#    health:
+#      show-details: always  # Show detailed health information
+#  logging:
+#  level:
+#    com.nixi: TRACE
+#  pattern:
+#    console: "%d [%level] %c{1.} [%t] %m%n"
+#    file: "%d [%level] %c{1.} [%t] %m%n"
+#  file:
+#    name: appLog.log
+

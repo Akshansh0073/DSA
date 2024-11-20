@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Extract local variable &apos;length&apos; from expression &apos;a1.length + a2.length&apos;&#x0A;- Original project: &apos;Basic_Java&apos;&#x0A;- Variable name: &apos;length&apos;&#x0A;- Destination method: &apos;basic_programs.ArrayProblems.mergeArray(...)&apos;&#x0A;- Variable expression: &apos;a1.length + a2.length&apos;&#x0A;- Replace occurrences of expression with variable" description="Extract local variable &apos;length&apos;" final="false" id="org.eclipse.jdt.ui.extract.temp" input="/src&lt;basic_programs{ArrayProblems.java" name="length" replace="true" replaceAllInThisFile="false" selection="621 21" stamp="1731998706322" varType="false" version="1.0"/>
+</session>

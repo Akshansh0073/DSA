@@ -1,0 +1,152 @@
+package com.rummy.common;
+
+import java.lang.ref.WeakReference;
+
+import com.rummy.extension.base.GameExtension;
+import com.smartfoxserver.v2.entities.data.ISFSObject;
+import com.smartfoxserver.v2.extensions.SFSExtension;
+
+import net.sf.json.JSONObject;
+
+/***
+ * 
+ * @author manish
+ *         <p>
+ *         This class is for Listening events from php side .
+ *         </p>
+ */
+
+public class PhpTriggers {
+
+	WeakReference<SFSExtension> ref_extension;
+
+	public PhpTriggers(SFSExtension pExtension) {
+		ref_extension = new WeakReference<SFSExtension>(pExtension);
+	}
+
+	/**
+	 * called when event triggered from php side
+	 * 
+	 * @param cmdName command-name
+	 * @param params  receiving parameters
+	 * @return return response string
+	 */
+	public synchronized String handlePhpTriggers(String cmdName, Object params) {
+
+		JSONObject object = new JSONObject();
+		try {
+
+			if (cmdName.equalsIgnoreCase(Constants.Param.USER_ID)
+					|| cmdName.equalsIgnoreCase(Constants.Param.USER_NAME)) {
+				ISFSObject apiParams = (ISFSObject) params;
+				Logger.getRef().Print(GameExtension.extension,
+						":::  phpTrigger :::cmdName :: " + cmdName + ":::: apiParams ::: " + apiParams.getDump());
+
+				object.accumulate(Constants.Param.RESULT, false);
+				object.accumulate(Constants.Param.OPCODE, 200);
+				object.accumulate(Constants.Param.RESULT_MESSAGE, "Send user chips data");
+				object.accumulate(Constants.Param.DATA, ((ISFSObject) params).getUtfString(Constants.Param.USER_NAME));
+				if (apiParams.getUtfString(Constants.Param.USER_NAME).equalsIgnoreCase(Constants.PhpTriggers.ALL)) {
+					GameExtension.gameDataManager.fetchBannerInfo();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.BANNER)) {
+					GameExtension.gameDataManager.fetchBannerInfo();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.WELCOME_POPUP)) {
+					GameExtension.gameDataManager.fetchWelComePopupInfo();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.ADD_TOURNAMENT)) {
+					GameExtension.gameDataManager.fetchTournamentList();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.ADMIN_COMMISION)) {
+					GameExtension.gameDataManager.fetchAdminCommision();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.GAMING_LIST)) {
+					GameExtension.gameDataManager.fetchGameList();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.ADD_TOURNAMENT)) {
+					GameExtension.gameDataManager.fetchTournamentList();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UPDATE_TOURNAMENT)) {
+					GameExtension.gameDataManager.updateTournament(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.VERIFY_KYC)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.VERIFY_EMAIL)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UNVERIFY_EMAIL)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.VERIFY_PHONE)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.VERIFY_UPI)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UNVERIFY_UPI)) {0
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UNVERIFY_PHONE)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UPDATE_CHIPS)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.DELETE_USER)) {
+					GameExtension.gameDataManager.deleteUser(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UPDATE_WITHDRAWAL_CHIPS)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UPDATE_BONUS)) {
+					GameExtension.gameDataManager.updateUserInfo(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.DEACTIVE_TOURNAMENT)) {
+					GameExtension.tournamentManager.getGamePlayManager()
+							.removeTournament(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.IS_LOG_INFO_ON)) {
+					AdminConfigData.getInstanse().setLogInfo(true);
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.IS_LOG_INFO_OFF)) {
+					AdminConfigData.getInstanse().setLogInfo(false);
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.IS_LOG_ERROR_ON)) {
+					AdminConfigData.getInstanse().setLogException(true);
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.IS_LOG_ERROR_OFF)) {
+					AdminConfigData.getInstanse().setLogException(false);
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UPDATE_BOT_LIST)) {
+					GameExtension.botManager.refreshBotList();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.REMOVE_BOT)) {
+					GameExtension.botManager.refreshBotList();
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.ACTIVE)) {
+					GameExtension.botManager.updateBotActiveStatus(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.INACTIVE)) {
+					GameExtension.botManager.updateBotActiveStatus(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else if (apiParams.getUtfString(Constants.Param.USER_NAME)
+						.equalsIgnoreCase(Constants.PhpTriggers.UPDATE_ACTIVE_STATUS)) {
+					GameExtension.gameDataManager
+							.updateUserActiveNBlockStatus(apiParams.getUtfString(Constants.Param.USER_ID));
+				} else {
+					Utils.GameUtil.updateUserSession((ISFSObject) params);
+				}
+
+			} else {
+				object.accumulate(Constants.Param.RESULT, true);
+				object.accumulate(Constants.Param.OPCODE, 301);
+				object.accumulate(Constants.Param.RESULT_MESSAGE, "Send all datas");
+				object.accumulate(Constants.Param.DATA, params.toString());
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(GameExtension.extension, e);
+		}
+		return object.toString();
+	}
+}

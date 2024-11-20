@@ -1,0 +1,98 @@
+package basic_programs;
+
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
+public class ArrayProblems {
+
+	public static void main(String[] args) {
+		
+//		//1
+	    int[] a = {1,2,3,4,5,3,5,7,6,7};
+		int b = maxNumber(a);
+		System.out.println(b);
+		
+		//2
+		int[] b1 = reverseInt(a);
+		System.out.println(Arrays.toString(b1));
+		
+		//3**
+		int b3 = maxSecondNumber(a);
+		System.out.println(b3);
+		
+		//4
+		int[] a1 = {1,3,5,6,7};
+		int a2[] = {2,4,6,8};
+		int [] b4 = mergeArray(a1,a2);
+		System.out.println(Arrays.toString(b4));
+		
+		//5
+		System.out.println(isSorted(a));
+
+	}
+
+	private static boolean isSorted(int[] a1) {
+		
+		int c=0;
+		for (int i=0;i<a1.length-1;i++) {
+			if(a1[i]>a1[i+1]) {
+				c++;
+			}
+		}
+		if(c==0) return true;
+		return false;
+	}
+
+	private static int[] mergeArray(int[] a1, int[] a2) {
+		
+		int length = a1.length + a2.length;
+		int [] a3 = new int[length];
+		
+		for (int i=0;i<a1.length;i++) {
+			a3[i]=a1[i];
+		}
+		for (int i=0;i<a2.length;i++) {
+			a3[i + a1.length]=a2[i];
+		}
+		Arrays.sort(a3);		
+		return a3;
+	}
+
+	private static int maxSecondNumber(int[] a) {
+        int a1 = Integer.MIN_VALUE;
+        int second=Integer.MIN_VALUE;
+		
+		for(int i=0;i<a.length;i++) {
+			if(a1<a[i]) {
+				second=a1;
+				a1 = a[i];
+			}
+			if(second<a[i] && a[i]<a1) {
+				second = a[i];
+			}
+		}
+		return second;
+	}
+
+
+	private static int[] reverseInt(int[] a) {
+		
+		int[] b = new int[a.length];
+		for(int i=0;i<a.length;i++) {
+			b[i]=a[a.length-1-i];
+		}
+		return b;
+	}
+
+	private static int maxNumber(int[] a) {
+		int a1 = Integer.MIN_VALUE;
+		
+		for(int i=0;i<a.length;i++) {
+			if(a1<a[i]) {
+				a1 = a[i];
+			}
+		}
+		return a1;
+	}
+
+}

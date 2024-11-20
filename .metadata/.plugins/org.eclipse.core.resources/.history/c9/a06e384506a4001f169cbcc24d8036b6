@@ -1,0 +1,49 @@
+package com.rummy.common;
+
+import java.lang.ref.WeakReference;
+
+import com.rummy.extension.base.GameExtension;
+import com.smartfoxserver.v2.entities.data.ISFSObject;
+import com.smartfoxserver.v2.extensions.SFSExtension;
+
+import net.sf.json.JSONObject;
+
+/***
+ * 
+ * @author manish
+ *         <p>
+ *         This class is for Listening events from php side .
+ *         </p>
+ */
+
+public class PhpTriggers {
+
+	WeakReference<SFSExtension> ref_extension;
+
+	public PhpTriggers(SFSExtension pExtension) {
+		ref_extension = new WeakReference<SFSExtension>(pExtension);
+	}
+
+	/**
+	 * called when event triggered from php side
+	 * 
+	 * @param cmdName command-name
+	 * @param params  receiving parameters
+	 * @return return response string
+	 */
+	public synchronized String handlePhpTriggers(String cmdName, Object params) {
+
+		JSONObject object = new JSONObject();
+		try {
+
+			if (cmdName.equalsIgnoreCase(Constants.Param.USER_ID)
+					|| cmdName.equalsIgnoreCase(Constants.Param.USER_NAME)) {
+				ISFSObject apiParams = (ISFSObject) params;
+				Logger.getRef().Print(GameExtension.extension,
+						":::  phpTrigger :::cmdName :: " + cmdName + ":::: apiParams ::: " + apiParams.getDump());
+
+				object.accumulate(Constants.Param.RESULT, false);
+				object.accumulate(Constants.Param.OPCODE, 200);
+				object.accumulate(Constants.Param.RESULT_MESSAGE, "Send user chips data");
+				object.accumulate(Constants.Param.DATA, ((ISFSObject) params).getUtfString(Constants.Param.USER_NAME));
+				

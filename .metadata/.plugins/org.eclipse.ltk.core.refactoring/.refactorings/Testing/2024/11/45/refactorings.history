@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename package &apos;Pattern&apos; to &apos;Linked_list&apos;&#x0A;- Original project: &apos;Testing&apos;&#x0A;- Original element: &apos;Testing/src/Pattern&apos;&#x0A;- Renamed element: &apos;Testing/src/Linked_list&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" description="Rename package &apos;Pattern&apos;" flags="589830" hierarchical="false" id="org.eclipse.jdt.ui.rename.package" input="/src&lt;Pattern" name="Linked_list" qualified="false" references="true" stamp="1730895516218" textual="false" version="1.0"/>
+</session>

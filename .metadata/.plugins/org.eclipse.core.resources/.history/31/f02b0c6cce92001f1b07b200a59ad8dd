@@ -1,0 +1,1886 @@
+package com.rummy.game.common;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.rummy.cache.models.AcceptRematchRequestModel;
+import com.rummy.cache.models.CardPickedByUserModel;
+import com.rummy.cache.models.CurrentGameHistoryModel;
+import com.rummy.cache.models.CurrentGameLastHandModel;
+import com.rummy.cache.models.DropCardModel;
+import com.rummy.cache.models.FinishPlayerTurnModel;
+import com.rummy.cache.models.GameResultDataModel;
+import com.rummy.cache.models.GameUserInfoModel;
+import com.rummy.cache.models.JoinBackModel;
+import com.rummy.cache.models.LeaveRoomRequestModel;
+import com.rummy.cache.models.RebuyChipsModel;
+import com.rummy.cache.models.ReconnectGameModel;
+import com.rummy.cache.models.RejoinGameModel;
+import com.rummy.cache.models.RematchRequestModel;
+import com.rummy.cache.models.RequestDiscardedCardModel;
+import com.rummy.cache.models.ResultCardModel;
+import com.rummy.cache.models.SaveBetAndSplitModel;
+import com.rummy.cache.models.SendChatMsgModel;
+import com.rummy.cache.models.ShowCardModel;
+import com.rummy.cache.models.UpdateUserTableSettingsModel;
+import com.rummy.common.AdminConfigData;
+import com.rummy.common.Card;
+import com.rummy.common.Constants;
+import com.rummy.common.Constants.CARDS;
+import com.rummy.common.Constants.GameStateTime;
+import com.rummy.common.Constants.GameSubType;
+import com.rummy.common.Constants.GameType;
+import com.rummy.common.Constants.Param;
+import com.rummy.common.Constants.ResultType;
+import com.rummy.common.Constants.RummyProj;
+import com.rummy.common.Constants.SUITS;
+import com.rummy.common.Constants.UserGameConnectionStatus;
+import com.rummy.common.Constants.UserStatus;
+import com.rummy.common.DoubleDeck;
+import com.rummy.common.GameCounter;
+import com.rummy.common.GameException;
+import com.rummy.common.Logger;
+import com.rummy.common.RTimer;
+import com.rummy.common.SingleDeck;
+import com.rummy.common.Utils;
+import com.rummy.extension.base.GameExtension;
+import com.rummy.game.common.interfaces.IGame;
+import com.rummy.game.common.interfaces.IGameState;
+import com.rummy.game.common.interfaces.IUtils;
+import com.rummy.game.common.states.PlayerWaitingState;
+import com.rummy.game.common.states.ResultState;
+import com.rummy.game.deal.DealRummyGame;
+import com.rummy.game.deal.states.DRMainCutForSeatState;
+import com.rummy.game.deal.states.DRMainCutForSeatState.DRCutForSeatState;
+import com.rummy.game.deal.states.DRMainDistributeCardState;
+import com.rummy.game.deal.states.DRMainDistributeCardState.DRDistributeCardState;
+import com.rummy.game.deal.states.DRMainGameWaitingState;
+import com.rummy.game.deal.states.DRMainGameWaitingState.DRGameWaitingState;
+import com.rummy.game.deal.states.DRMainPlayerTurnState;
+import com.rummy.game.deal.states.DRMainPlayerTurnState.DRPlayerTurnState;
+import com.rummy.game.deal.states.DRMainPlayerWaitingState;
+import com.rummy.game.deal.states.DRMainPlayerWaitingState.DRPlayerWaitingState;
+import com.rummy.game.deal.states.DRMainResultState;
+import com.rummy.game.deal.states.DRMainResultState.DRResultState;
+import com.rummy.game.deal.states.DRMainWaitingNextGameState;
+import com.rummy.game.deal.states.DRMainWaitingNextGameState.DRWaitingNextGameState;
+import com.rummy.game.deal.states.DRMainWaitingResultState;
+import com.rummy.game.deal.states.DRMainWaitingResultState.DRWaitingResultState;
+import com.rummy.game.gunshot.GunShotRummyGame;
+import com.rummy.game.gunshot.states.GSMainCutForSeatState;
+import com.rummy.game.gunshot.states.GSMainCutForSeatState.GSCutForSeatState;
+import com.rummy.game.gunshot.states.GSMainDistributeCardState;
+import com.rummy.game.gunshot.states.GSMainDistributeCardState.GSDistributeCardState;
+import com.rummy.game.gunshot.states.GSMainGameWaitingState;
+import com.rummy.game.gunshot.states.GSMainGameWaitingState.GSGameWaitingState;
+import com.rummy.game.gunshot.states.GSMainPlayerTurnState;
+import com.rummy.game.gunshot.states.GSMainPlayerTurnState.GSPlayerTurnState;
+import com.rummy.game.gunshot.states.GSMainPlayerWaitingState;
+import com.rummy.game.gunshot.states.GSMainPlayerWaitingState.GSPlayerWaitingState;
+import com.rummy.game.gunshot.states.GSMainResultState;
+import com.rummy.game.gunshot.states.GSMainResultState.GSResultState;
+import com.rummy.game.gunshot.states.GSMainWaitingNextGameState;
+import com.rummy.game.gunshot.states.GSMainWaitingNextGameState.GSWaitingNextGameState;
+import com.rummy.game.gunshot.states.GSMainWaitingResultState;
+import com.rummy.game.gunshot.states.GSMainWaitingResultState.GSWaitingResultState;
+import com.rummy.game.points.PointsRummyGame;
+import com.rummy.game.points.states.PRMainCutForSeatState;
+import com.rummy.game.points.states.PRMainCutForSeatState.PRCutForSeatState;
+import com.rummy.game.points.states.PRMainDistributeCardState;
+import com.rummy.game.points.states.PRMainDistributeCardState.PRDistributeCardState;
+import com.rummy.game.points.states.PRMainGameWaitingState;
+import com.rummy.game.points.states.PRMainGameWaitingState.PRGameWaitingState;
+import com.rummy.game.points.states.PRMainPlayerTurnState;
+import com.rummy.game.points.states.PRMainPlayerTurnState.PRPlayerTurnState;
+import com.rummy.game.points.states.PRMainPlayerWaitingState;
+import com.rummy.game.points.states.PRMainPlayerWaitingState.PRPlayerWaitingState;
+import com.rummy.game.points.states.PRMainResultState;
+import com.rummy.game.points.states.PRMainResultState.PRResultState;
+import com.rummy.game.points.states.PRMainWaitingNextGameState;
+import com.rummy.game.points.states.PRMainWaitingNextGameState.PRWaitingNextGameState;
+import com.rummy.game.points.states.PRMainWaitingResultState;
+import com.rummy.game.points.states.PRMainWaitingResultState.PRWaitingResultState;
+import com.rummy.game.pool.PoolRummyGame;
+import com.rummy.game.pool.states.PLMainCutForSeatState;
+import com.rummy.game.pool.states.PLMainCutForSeatState.PLCutForSeatState;
+import com.rummy.game.pool.states.PLMainDistributeCardState;
+import com.rummy.game.pool.states.PLMainDistributeCardState.PLDistributeCardState;
+import com.rummy.game.pool.states.PLMainGameWaitingState;
+import com.rummy.game.pool.states.PLMainGameWaitingState.PLGameWaitingState;
+import com.rummy.game.pool.states.PLMainPlayerTurnState;
+import com.rummy.game.pool.states.PLMainPlayerTurnState.PLPlayerTurnState;
+import com.rummy.game.pool.states.PLMainPlayerWaitingState;
+import com.rummy.game.pool.states.PLMainPlayerWaitingState.PLPlayerWaitingState;
+import com.rummy.game.pool.states.PLMainResultState;
+import com.rummy.game.pool.states.PLMainResultState.PLResultState;
+import com.rummy.game.pool.states.PLMainWaitingNextGameState;
+import com.rummy.game.pool.states.PLMainWaitingNextGameState.PLWaitingNextGameState;
+import com.rummy.game.pool.states.PLMainWaitingResultState;
+import com.rummy.game.pool.states.PLMainWaitingResultState.PLWaitingResultState;
+import com.rummy.game.tournament.TournamentContext;
+import com.rummy.game.tournament.TournamentRummyGame;
+import com.rummy.game.tournament.states.TRMainCutForSeatState;
+import com.rummy.game.tournament.states.TRMainDistributeCardState;
+import com.rummy.game.tournament.states.TRMainGameWaitingState;
+import com.rummy.game.tournament.states.TRMainPlayerTurnState;
+import com.rummy.game.tournament.states.TRMainPlayerTurnState.TRPlayerTurnState;
+import com.rummy.game.tournament.states.TRMainPlayerWaitingState;
+import com.rummy.game.tournament.states.TRMainResultState;
+import com.rummy.game.tournament.states.TRMainWaitingNextGameState;
+import com.rummy.game.tournament.states.TRMainWaitingResultState;
+import com.smartfoxserver.v2.api.ISFSApi;
+import com.smartfoxserver.v2.entities.Room;
+import com.smartfoxserver.v2.entities.User;
+import com.smartfoxserver.v2.entities.Zone;
+import com.smartfoxserver.v2.entities.data.ISFSArray;
+import com.smartfoxserver.v2.entities.data.ISFSObject;
+import com.smartfoxserver.v2.entities.data.SFSArray;
+import com.smartfoxserver.v2.entities.data.SFSObject;
+import com.smartfoxserver.v2.extensions.SFSExtension;
+
+public class Game extends StateMachine implements IGame, IUtils {
+
+	public Zone zone;
+	public SFSExtension extension;
+	public ISFSApi gameApi;
+	public Room room;
+	public String tableId;
+	public String roomName;
+	public String gameType;
+	public String gameCatType;
+	public String gameSubtype;
+	public String bet;
+	public String fixedPrize;
+	public String prize;
+	public String minBuyIn;
+	public String minPlayers;
+	public String maxPlayers;
+	public String gameTypeId;
+	public String groupId;
+	public RTimer rTimer;
+	public RTimer rGameTimer;
+	public GamePlayUserList playerList;
+	public GameEventDispatcher eventDispatcher;
+	public GameTable gameTable;
+	public GameCards mGameCards;
+	public GameId gameUniqueId;
+	public ScoreCalculator scoreCalculator;
+	public AutoPlayAI autoPlayAI;
+	public AutoPlay autoPlay;
+	public GameCounter gameCounter;
+	public List<GameResultDataModel> listResultGames;
+	public ISFSObject stateLastResponseTurn;
+	public ISFSObject stateLastResponsePickCard;
+	public ISFSObject stateLastResponseResult;
+	public UpdateUserStatus updateUserStatus;
+	public GameUser gameTurnUser;
+
+	public Game(SFSExtension pExtension, Room pRoom) {
+		extension = pExtension;
+		room = pRoom;
+		initGame();
+		addGameStatesList(this);
+		setPlayerWaitState();
+	}
+
+	public Game(SFSExtension pExtension, Room pRoom, TournamentContext pContext) {
+		extension = pExtension;
+		room = pRoom;
+		initGame();
+	}
+
+	public Game getGameInstance() {
+		return this;
+	}
+
+	public void initGame() {
+		zone = room.getZone();
+		gameApi = extension.getApi();
+		roomName = room.getName();
+		tableId = String.valueOf(room.getProperty(Constants.Param.TABLE_ID));
+		gameType = String.valueOf(room.getProperty(Constants.Param.GAME_TYPE));
+		gameSubtype = String.valueOf(room.getProperty(Constants.Param.GAME_SUB_TYPE));
+		bet = String.valueOf(room.getProperty(Constants.Param.BET));
+		prize = String.valueOf(room.getProperty(Constants.Param.WIN_PRIZE));
+		minPlayers = String.valueOf(room.getProperty(Constants.Param.MIN_PLAYERS));
+		maxPlayers = String.valueOf(room.getProperty(Constants.Param.MAX_PLAYERS));
+		gameTypeId = String.valueOf(room.getProperty(Constants.Param.GAME_ID));
+		minBuyIn = String.valueOf(room.getProperty(Constants.Param.MIN_BUY_IN));
+		gameCatType = String.valueOf(room.getProperty(Constants.Param.GAME_CATEGORY_TYPE));
+		groupId = room.getGroupId();
+		rTimer = new RTimer();
+		playerList = new GamePlayUserList(this);
+		gameUniqueId = new GameId(this);
+		eventDispatcher = new GameEventDispatcher(this);
+		gameTable = new GameTable(this);
+		mGameCards = new GameCards(this);
+		scoreCalculator = new ScoreCalculator(this);
+		autoPlayAI = new AutoPlayAI(this);
+		autoPlay = new AutoPlay(this);
+		gameCounter = new GameCounter(this);
+		listResultGames = new ArrayList<GameResultDataModel>();
+		stateLastResponseTurn = new SFSObject();
+		stateLastResponsePickCard = new SFSObject();
+		stateLastResponseResult = new SFSObject();
+		updateUserStatus = new UpdateUserStatus(this);
+		rGameTimer = new RTimer();
+		rGameTimer.resetTimer();
+	}
+
+	/**
+	 * add game-states to state-list
+	 * 
+	 * @param pContext
+	 */
+	protected void addGameStatesList(IGame pContext) {
+
+		IGameState state1 = null;
+		IGameState state2 = null;
+		IGameState state3 = null;
+		IGameState state4 = null;
+		IGameState state5 = null;
+		IGameState state6 = null;
+		IGameState state7 = null;
+		IGameState state8 = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			TournamentRummyGame tempGame = (TournamentRummyGame) pContext;
+			state1 = TRMainPlayerWaitingState.createState(tempGame);
+			state2 = TRMainGameWaitingState.createState(tempGame);
+			state3 = TRMainCutForSeatState.createState(tempGame);
+			state4 = TRMainDistributeCardState.createState(tempGame);
+			state5 = TRMainPlayerTurnState.createState(tempGame);
+			state6 = TRMainWaitingResultState.createState(tempGame);
+			state7 = TRMainResultState.createState(tempGame);
+			state8 = TRMainWaitingNextGameState.createState(tempGame);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				PointsRummyGame tempGame = (PointsRummyGame) pContext;
+				state1 = PRMainPlayerWaitingState.createState(tempGame);
+				state2 = PRMainGameWaitingState.createState(tempGame);
+				state3 = PRMainCutForSeatState.createState(tempGame);
+				state4 = PRMainDistributeCardState.createState(tempGame);
+				state5 = PRMainPlayerTurnState.createState(tempGame);
+				state6 = PRMainWaitingResultState.createState(tempGame);
+				state7 = PRMainResultState.createState(tempGame);
+				state8 = PRMainWaitingNextGameState.createState(tempGame);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				DealRummyGame tempGame = (DealRummyGame) pContext;
+				state1 = DRMainPlayerWaitingState.createState(tempGame);
+				state2 = DRMainGameWaitingState.createState(tempGame);
+				state3 = DRMainCutForSeatState.createState(tempGame);
+				state4 = DRMainDistributeCardState.createState(tempGame);
+				state5 = DRMainPlayerTurnState.createState(tempGame);
+				state6 = DRMainWaitingResultState.createState(tempGame);
+				state7 = DRMainResultState.createState(tempGame);
+				state8 = DRMainWaitingNextGameState.createState(tempGame);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				PoolRummyGame tempGame = (PoolRummyGame) pContext;
+				state1 = PLMainPlayerWaitingState.createState(tempGame);
+				state2 = PLMainGameWaitingState.createState(tempGame);
+				state3 = PLMainCutForSeatState.createState(tempGame);
+				state4 = PLMainDistributeCardState.createState(tempGame);
+				state5 = PLMainPlayerTurnState.createState(tempGame);
+				state6 = PLMainWaitingResultState.createState(tempGame);
+				state7 = PLMainResultState.createState(tempGame);
+				state8 = PLMainWaitingNextGameState.createState(tempGame);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				GunShotRummyGame tempGame = (GunShotRummyGame) pContext;
+				state1 = GSMainPlayerWaitingState.createState(tempGame);
+				state2 = GSMainGameWaitingState.createState(tempGame);
+				state3 = GSMainCutForSeatState.createState(tempGame);
+				state4 = GSMainDistributeCardState.createState(tempGame);
+				state5 = GSMainPlayerTurnState.createState(tempGame);
+				state6 = GSMainWaitingResultState.createState(tempGame);
+				state7 = GSMainResultState.createState(tempGame);
+				state8 = GSMainWaitingNextGameState.createState(tempGame);
+			}
+		}
+
+		ArrayList<IGameState> stateList = new ArrayList<IGameState>();
+		stateList.add(state1);
+		stateList.add(state2);
+		stateList.add(state3);
+		stateList.add(state4);
+		stateList.add(state5);
+		stateList.add(state6);
+		stateList.add(state7);
+		stateList.add(state8);
+		addGameStates(stateList);
+	}
+
+	@Override
+	public void OnUpdate() {
+		long seconds = rTimer.getElapsedTime();
+
+		Logger.getRef().Print(extension, "Game Seconds ::::: " + seconds + " ::::Cureate State :::: "
+				+ getGameState().getClass().getSimpleName() + " -- " + seconds);
+
+		IGameState gameState = getGameState();
+		if (gameState != null) {
+			gameState.getGameInterFace().OnUpdate();
+			if (gameState.getClass().equals(PRPlayerWaitingState.class)
+					|| gameState.getClass().equals(GSPlayerWaitingState.class)
+					|| gameState.getClass().equals(PLPlayerWaitingState.class)
+					|| gameState.getClass().equals(DRPlayerWaitingState.class)) {
+				List<User> tempUserList = playerList.getUserListInRoom();
+				if (tempUserList.size() > 1) {
+					setGameWaitState();
+				}
+			} else if (gameState.getClass().equals(PRGameWaitingState.class)
+					|| gameState.getClass().equals(DRGameWaitingState.class)
+					|| gameState.getClass().equals(PLGameWaitingState.class)
+					|| gameState.getClass().equals(GSGameWaitingState.class)) {
+				List<User> tempUserList = playerList.getUserListInRoom();
+
+				Logger.getRef().Print(extension,
+						"Game ::: onUpdate ::: User Size ::: " + tempUserList.size() + " :::: Current Seconds :::: "
+								+ seconds + " ::::: Game Waiting State Time :::: "
+								+ ((BaseState) gameState).gameWaitingStateTime);
+
+				if (tempUserList.size() == 1) {
+					setPlayerWaitState();
+
+				} else if (seconds >= ((BaseState) gameState).gameWaitingStateTime) {
+					setCutForSeatState();
+				}
+
+			} else if (gameState.getClass().equals(PRCutForSeatState.class)
+					|| gameState.getClass().equals(DRCutForSeatState.class)
+					|| gameState.getClass().equals(PLCutForSeatState.class)
+					|| gameState.getClass().equals(GSCutForSeatState.class)) {
+				if (seconds >= GameStateTime.CUT_FOR_SEAT_STATE_TIME) {
+					Logger.getRef().Print(extension, "distribute state set");
+					setDistributeCardState();
+				}
+			} else if (gameState.getClass().equals(PRDistributeCardState.class)
+					|| gameState.getClass().equals(DRDistributeCardState.class)
+					|| gameState.getClass().equals(PLDistributeCardState.class)
+					|| gameState.getClass().equals(GSDistributeCardState.class)) {
+				if (((BaseState) gameState).isDistributeStateEntered) {
+					int playerSize = playerList.getGamePlayerList().size();
+					Logger.getRef().Print(extension, ":::::   distribute state set  ::::  playerSize:::::        "
+							+ playerSize + "::::   seconds   ::::      " + seconds);
+					// if (seconds >= 3 * playerSize) {
+					if (seconds >= 3) {
+						Logger.getRef().Print(extension, "player-turn state set");
+						setPlayerTurnState();
+					}
+				}
+			} else if (gameState.getClass().equals(PRPlayerTurnState.class)
+					|| gameState.getClass().equals(DRPlayerTurnState.class)
+					|| gameState.getClass().equals(PLPlayerTurnState.class)
+					|| gameState.getClass().equals(GSPlayerTurnState.class)) {
+				List<GameUser> activePlayerList = playerList.getActivePlayerList();
+				List<GameUser> halfDropPlayerList = playerList.getHalfDropPlayerList();
+				int totalPlayerCount = activePlayerList.size() + halfDropPlayerList.size();
+				GameUser tempWinner = playerList.getWinner();
+				if (totalPlayerCount == 1) {
+					GameUser tempGameUser = null;
+					for (GameUser gameUser : activePlayerList) {
+						tempGameUser = gameUser;
+					}
+					if (tempWinner == null) {
+						updateUserStatus.update_GameUser_Status_Sync(tempGameUser, UserStatus.WINNER, 0, true, false);
+						ResultState tempResultState = new ResultState(null);
+						delayedStateCall(tempResultState, 2000);
+					}
+				}
+			} else if (gameState.getClass().equals(PRWaitingResultState.class)
+					|| gameState.getClass().equals(DRWaitingResultState.class)
+					|| gameState.getClass().equals(PLWaitingResultState.class)
+					|| gameState.getClass().equals(GSWaitingResultState.class)) {
+				if (seconds >= GameStateTime.WAITING_RESULT_STATE_TIME) {
+					setResultState();
+				} else {
+					if (isPlayersFinishedResult()) {
+						setResultState();
+					}
+				}
+			} else if (gameState.getClass().equals(PRResultState.class)
+					|| gameState.getClass().equals(DRResultState.class)
+					|| gameState.getClass().equals(PLResultState.class)
+					|| gameState.getClass().equals(GSResultState.class)) {
+				if (((BaseState) getGameState()).isDataSavingCompletedInDB) {
+					setWaitingNextGameState();
+				}
+			} else if (gameState.getClass().equals(PRWaitingNextGameState.class)
+					|| gameState.getClass().equals(DRWaitingNextGameState.class)
+					|| gameState.getClass().equals(PLWaitingNextGameState.class)
+					|| gameState.getClass().equals(GSWaitingNextGameState.class)) {
+
+				if (seconds >= (((BaseState) gameState).waitingNextGameStateTime + 3)) {
+
+					List<GameUser> tempInActivePlayers = removeInActivePlayers();
+					int tempUserCount = playerList.getPlayerCountForNextGame(tempInActivePlayers);
+
+					Logger.getRef().Print(GameExtension.extension,
+							":::::    Game ::::PRWaitingNextGameState   ::::  tempUserCount   ::::         "
+									+ tempUserCount);
+
+					Logger.getRef().Print(extension, "user count for next game :-- " + tempUserCount);
+
+					for (GameUser gameUser : playerList.getGamePlayerList()) {
+						Logger.getRef().Print(extension,
+								"user count for next game (onUpdate) :- " + gameUser.userConnectionStatus);
+
+						Logger.getRef().Print(extension, "user count for next game (onUpdate) :- "
+								+ gameUser.userConnectionStatus + " table id  :- " + tableId);
+						Logger.getRef().Print(GameExtension.extension,
+								":::::  Game :::: user count for next game  ::::  username :::: " + gameUser.userName
+										+ "::::  user connection status :::::  " + gameUser.userConnectionStatus);
+					}
+
+					String tempDelearUserName = null;
+					for (GameUser tempGameUser : playerList.getGamePlayerList()) {
+						if (tempGameUser.isDealer) {
+							tempDelearUserName = tempGameUser.userName;
+							break;
+						}
+					}
+
+					if (tempUserCount > 1) {
+						resetGame();
+
+						/*
+						 * if (AdminConfigData.getInstanse().getRummyProj().equalsIgnoreCase(RummyProj.
+						 * GOLDEN_RUMMY)) { setGameWaitState(); } else
+						 */if (AdminConfigData.getInstanse().getRummyProj().equalsIgnoreCase(RummyProj.ROAD_RUMMY)) {
+							if (playerList.getGamePlayerList().size() == 2 || (playerList.getGamePlayerList().size() > 2
+									&& (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+											|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)))) {
+								playerList.setNextDealer(true);
+								gameUniqueId.generateNewID();
+								setDistributeCardState();
+							} else {
+								playerList.setNextDealer(false);
+								setCutForSeatState();
+							}
+						} /*
+							 * else {
+							 * 
+							 * if (playerList.getGamePlayerList().size() == 2 && tempDelearUserName != null)
+							 * { GameUser tempOtherUser = null; for (GameUser tempGameUser :
+							 * playerList.getGamePlayerList()) { if
+							 * (!tempGameUser.userName.equalsIgnoreCase(tempDelearUserName)) { tempOtherUser
+							 * = tempGameUser; break; } } GameUser tempDealer =
+							 * playerList.getGamePlayerByUserName(tempDelearUserName); if (tempDealer !=
+							 * null) { tempDealer.isDealer = false; } tempOtherUser.isDealer = true;
+							 * gameUniqueId.generateNewID(); setDistributeCardState(); } else {
+							 * 
+							 * GameUser tempDealer = playerList.getGamePlayerByUserName(tempDelearUserName);
+							 * if (tempDealer != null) { tempDealer.isDealer = false; }
+							 * 
+							 * setCutForSeatState(); } }
+							 */
+					} else if (tempUserCount == 1) {
+						try {
+							Logger.getRef().Print(extension, " player waiting for next game else player count is :- "
+									+ tempUserCount + " table id  :- " + tableId);
+
+							((BaseState) gameState).REMOVE_UsersFromRoom(playerList.getGamePlayerList());
+							((BaseState) gameState).Update_DB_Score_On_ForceLeaved(playerList.getGamePlayerList(),
+									true);
+							((BaseState) gameState).sendGameQuitEvent(playerList.getGamePlayerList());
+							resetGame();
+							setPlayerWaitState();
+
+						} catch (Exception e) {
+							Logger.getRef().Print(extension,
+									"Game ::::: onUpdate ::::: game next game waitin issues :::: ");
+							GameException.getRef().printStackTrack(GameExtension.extension, e);
+						}
+					}
+
+					/*
+					 * else if(tempUserCount == 1){
+					 * 
+					 * tempBaseState.REMOVE_UsersFromRoom(tempUserList);
+					 * tempBaseState.Update_DB_Score_On_ForceLeaved(tempUserList );
+					 * tempBaseState.sendGameQuitEvent(tempUserList); // resetGame(); //
+					 * setPlayerWaitState(); }
+					 */
+				}
+			}
+		}
+	}
+
+	/**
+	 * reset game(reset player list or update player list , reset game-cards and
+	 * game-timer)
+	 */
+	void resetGame() {
+		if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)
+				|| gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+
+			playerList.updateAndResetPlayerList(new ArrayList<User>());
+		} else {
+			playerList.resetGamePlayerList(roomName, eventDispatcher);
+		}
+		mGameCards.reset();
+		rTimer.resetTimer();
+	}
+
+	/**
+	 * remove in-active players from player-list
+	 */
+	protected List<GameUser> removeInActivePlayers() {
+		List<GameUser> tempInActivePlayers = new ArrayList<GameUser>();
+		for (GameUser tempGameUser : playerList.getGamePlayerList()) {
+			if (tempGameUser.userConnectionStatus == UserGameConnectionStatus.LEVAED
+					|| tempGameUser.userConnectionStatus == UserGameConnectionStatus.FORCE_LEVAED) {
+				tempInActivePlayers.add(tempGameUser);
+
+				GameExtension.cache.getUser().getValueByKey(tempGameUser.userName).RemoveGameDetails(extension, zone,
+						tempGameUser.userName, roomName);
+				// UserSession.RemoveGameDetails(extension, zone, tempGameUser.userName,
+				// roomName);
+			}
+		}
+		IGameState gameState = getGameState();
+		((BaseState) gameState).REMOVE_UsersFromRoom(tempInActivePlayers);
+		playerList.getGamePlayerList().removeAll(tempInActivePlayers);
+		return tempInActivePlayers;
+	}
+
+	@Override
+	public synchronized void RoomJoined(Room pRoom, User user) {
+		try {
+			IGameState gameState = getGameState();
+
+			Logger.getRef().Print(GameExtension.extension,
+					"::::  Game :::::  RoomJoined  ::::: User name  ::::  " + user.getDump());
+			if (gameState != null) {
+				try {
+					if (playerList.isSpectator(user)) {
+						new java.util.Timer().schedule(new java.util.TimerTask() {
+							@Override
+							public void run() {
+								ISFSArray playerSFSArr = playerList.getGamePlayerSFSArray();
+								eventDispatcher.send_Updated_Player_List_Event_To(user, playerSFSArr);
+								cancel();
+							}
+						}, 1000);
+						return;
+					}
+				} catch (Exception e) {
+					GameException.getRef().printStackTrack(extension, e);
+					return;
+				}
+				gameState = getGameState_For_User(user);
+				if (gameState != null) {
+					gameState.getGameInterFace().RoomJoined(room, user);
+
+					if (gameState.getClass().equals(PRPlayerWaitingState.class)
+							|| gameState.getClass().equals(GSPlayerWaitingState.class)
+							|| gameState.getClass().equals(PLPlayerWaitingState.class)
+							|| gameState.getClass().equals(DRPlayerWaitingState.class)) {
+						List<User> tempUserList = playerList.getUserListInRoom();
+						if (tempUserList.size() > 1) {
+							setGameWaitState();
+						} else if (tempUserList.size() == 1) {
+							PlayerWaitingState tempState = ((PlayerWaitingState) gameStateList.get(0));
+							if (tempState != null) {
+								tempState.sendWaitingForPlayerEvent(new ArrayList<>());
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(extension, e);
+		}
+	}
+
+	@Override
+	public synchronized void RoomLeave(Room pRoom, User user) {
+		String tempUserName = user.getName();
+		try {
+			if (GameExtension.cache.getUser().getValueByKey(tempUserName).isSpectator(roomName)) {
+				// if (UserSession.get_IsSpectator(tempUserName, roomName)) {
+				// UserSession.RemoveGameDetails(extension, zone, tempUserName, roomName);
+				GameExtension.cache.getUser().getValueByKey(tempUserName).RemoveGameDetails(extension, zone,
+						user.getName(), roomName);
+				return;
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(extension, e);
+			return;
+		}
+		IGameState gameState = getGameState();
+		if (gameState != null) {
+
+			Logger.getRef().Print(extension,
+					":::::  Game :::::  RoomLeave   ::::: pRoom  ::::    " + pRoom + ":::::  tempUserName   ::::    "
+							+ tempUserName + ":::::   gameState   :::::  " + gameState.toString());
+
+			gameState.getGameInterFace().RoomLeave(room, user);
+			if (gameState.getClass().equals(PRPlayerWaitingState.class)
+					|| gameState.getClass().equals(DRPlayerWaitingState.class)
+					|| gameState.getClass().equals(PLPlayerWaitingState.class)
+					|| gameState.getClass().equals(GSPlayerWaitingState.class)) {
+
+				List<User> tempUserList = playerList.getUserListInRoom();
+				if (tempUserList.size() > 1) {
+					setGameWaitState();
+				}
+			} else if (gameState.getClass().equals(PRGameWaitingState.class)
+					|| gameState.getClass().equals(DRGameWaitingState.class)
+					|| gameState.getClass().equals(PLGameWaitingState.class)
+					|| gameState.getClass().equals(GSGameWaitingState.class)) {
+
+				if (validatePlayerWaitState()) {
+					setPlayerWaitState();
+				}
+			}
+
+		}
+	}
+
+	@Override
+	public void RoomRemoved(Room pRoom, User user) {
+		// gameTable.resetTableStatus(Constants.TableStatus.EXIT_GAME);
+		/*
+		 * try { if(UserSession.get_IsSpectator(user.getName(),roomName)){ return; }
+		 * IGameState gameState = getGameState(); if (gameState != null) {
+		 * gameState.getGameInterFace().RoomRemoved(room, user); } } catch (Exception e)
+		 * { Utils.GameException.getRef().printStackTrack(extension, e); }
+		 */
+	}
+
+	@Override
+	public boolean ShowCardHandler(User user, ShowCardModel param) {
+		if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			try {
+				if (playerList.isSpectator(user)) {
+					return false;
+				}
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(extension, e);
+				return false;
+			}
+		}
+
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			boolean isValid = gameState.getGameInterFace().ShowCardHandler(user, param);
+			return isValid;
+		}
+
+		/*
+		 * IGameState gameState = getGameState(); if (gameState != null) { boolean
+		 * isValid = gameState.getGameInterFace().ShowCardHandler(user, param); if
+		 * (gameState.getClass().equals(PRPlayerTurnState.class) ||
+		 * gameState.getClass().equals(GSPlayerTurnState.class) ||
+		 * gameState.getClass().equals(PLPlayerTurnState.class) ||
+		 * gameState.getClass().equals(DRPlayerTurnState.class)) { if(isValid){ GameUser
+		 * tempGameUser = playerList.getGamePlayerByUserName(user.getName());
+		 * tempGameUser.isShowBy = true; setWaitingResultState(); } } }
+		 */
+		return false;
+	}
+
+	@Override
+	public synchronized boolean RoomLeaveRequestHandler(User user, LeaveRoomRequestModel param) {
+		boolean flag = false;
+		if (!mGameCards.isDeckShuffling()) {
+			IGameState gameState = getGameState();
+			if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+				try {
+					if (playerList.isSpectator(user)) {
+						if (gameState != null) {
+							((BaseState) gameState).leaveRoom(user, true);
+							return true;
+						}
+					}
+				} catch (Exception e) {
+					GameException.getRef().printStackTrack(extension, e);
+					return true;
+				}
+			}
+			gameState = getGameState_For_User(user);
+			if (gameState != null) {
+				flag = gameState.getGameInterFace().RoomLeaveRequestHandler(user, param);
+				if (flag) {
+					((BaseState) gameState).leaveRoom(user, true);
+				}
+			}
+		}
+		return flag;
+	}
+
+	@Override
+	public synchronized boolean DropCardHandler(User user, DropCardModel param) {
+		boolean isValidToDrop = false;
+		if (!mGameCards.isDeckShuffling()) {
+			if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+				try {
+					if (playerList.isSpectator(user)) {
+						return false;
+					}
+				} catch (Exception e) {
+					GameException.getRef().printStackTrack(extension, e);
+					return false;
+				}
+			}
+
+			IGameState gameState = getGameState_For_User(user);
+			if (gameState != null) {
+				isValidToDrop = gameState.getGameInterFace().DropCardHandler(user, param);
+			}
+		}
+		return isValidToDrop;
+	}
+
+	@Override
+	// public synchronized void ResultCardHandler(User user, ResultCardModel param)
+	// {
+	public void ResultCardHandler(User user, ResultCardModel param) {
+		if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			try {
+				if (playerList.isSpectator(user)) {
+					return;
+				}
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(extension, e);
+				return;
+			}
+
+		}
+
+		IGameState gameState = getGameState_For_User(user);
+
+		if (gameState != null) {
+			gameState.getGameInterFace().ResultCardHandler(user, param);
+		}
+	}
+
+	@Override
+	public synchronized boolean PlayerDisconnectHandler(User user) {
+		if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			try {
+				if (playerList.isSpectator(user)) {
+					return true;
+				}
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(extension, e);
+				return true;
+			}
+		}
+
+		IGameState gameState = getGameState_For_User(user);
+		try {
+			if (gameState != null) {
+				gameState.getGameInterFace().PlayerDisconnectHandler(user);
+				// GameUser tempGameUser =
+				// playerList.getGamePlayerByUserName(user.getName());
+				if (gameState.getClass().equals(PRGameWaitingState.class)
+						|| gameState.getClass().equals(DRGameWaitingState.class)
+						|| gameState.getClass().equals(PLGameWaitingState.class)
+						|| gameState.getClass().equals(GSGameWaitingState.class)) {
+
+					if (validatePlayerWaitState()) {
+						setPlayerWaitState();
+					}
+				}
+				/*
+				 * else if(tempGameUser != null && tempGameUser.userConnectionStatus !=
+				 * UserGameConnectionStatus.LEVAED && tempGameUser.userConnectionStatus !=
+				 * UserGameConnectionStatus.FORCE_LEVAED){
+				 * DBManager.InsertDisconnectUserAndGameDetails(tempGameUser.userId,
+				 * tempGameUser.userName, roomName, gameUniqueId.getID(),
+				 * tempGameUser.tableChips); }
+				 */
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(extension, e);
+		}
+		return true;
+	}
+
+	@Override
+	// public synchronized void UpdateUserTableSettingsHandler(User user,
+	// UpdateUserTableSettingsModel param) {
+	public void UpdateUserTableSettingsHandler(User user, UpdateUserTableSettingsModel param) {
+		if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			try {
+				if (playerList.isSpectator(user)) {
+					return;
+				}
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(extension, e);
+				return;
+			}
+		}
+
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			gameState.getGameInterFace().UpdateUserTableSettingsHandler(user, param);
+		}
+	}
+
+	@Override
+	public boolean FinishPlayerTurnHandler(User user, FinishPlayerTurnModel param) {
+		if (!mGameCards.isDeckShuffling()) {
+			if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+				try {
+					if (playerList.isSpectator(user)) {
+						return false;
+					}
+				} catch (Exception e) {
+					GameException.getRef().printStackTrack(extension, e);
+					return false;
+				}
+			}
+
+			Logger.getRef().Print(extension, "Finish Player Turn :::: User ::: " + user.getName() + " ::: Params ::: "
+					+ param.toISFSObj().getDump());
+
+			IGameState gameState = getGameState_For_User(user);
+			if (gameState != null) {
+				if (gameState.getClass().equals(PRPlayerTurnState.class)
+						|| gameState.getClass().equals(GSPlayerTurnState.class)
+						|| gameState.getClass().equals(PLPlayerTurnState.class)
+						|| gameState.getClass().equals(DRPlayerTurnState.class)
+						|| gameState.getClass().equals(TRPlayerTurnState.class)) {
+
+					GameUser tempPreGameUser = playerList.getTurnPlayer();
+					if (param.isShow.equalsIgnoreCase(ResultType.TRUE)
+							&& (tempPreGameUser != null && tempPreGameUser.userName.equalsIgnoreCase(user.getName()))
+							&& !(((BaseState) getGameState())).isAutoFinishing) {
+						(((BaseState) getGameState())).isShowingCard = true;
+
+						Logger.getRef().Print(extension, "SHOW CARD BY USER :- " + user.getName());
+						ShowCardModel tempModel = param.getShowCardModel();
+
+						Logger.getRef().Print(extension,
+								"Finish Player Turn :::: Show Card :::: " + tempModel.toISFSObj().getDump());
+
+						boolean isShow = ShowCardHandler(user, tempModel);
+						Logger.getRef().Print(extension, "Finish Player Turn :::: Is Show Validate :::: " + isShow);
+						Logger.getRef().Print(extension,
+								"Finish Player Turn :::: Is isWrongShow :::: " + tempPreGameUser.isWrongShow);
+
+						if (isShow) {
+
+							Logger.getRef().Print(extension, "FINISHING TURN IN SHOW CARD :- " + user.getName());
+
+							param.stopNextTurn = true;
+
+							gameState.getGameInterFace().FinishPlayerTurnHandler(user, param);
+							new java.util.Timer().schedule(new java.util.TimerTask() {
+								@Override
+								public void run() {
+									GameUser tempGameUser = playerList.getGamePlayerByUserName(user.getName());
+									tempGameUser.isShowBy = true;
+									setWaitingResultState();
+									cancel();
+								}
+							}, 500);
+						} else {
+
+							new java.util.Timer().schedule(new java.util.TimerTask() {
+								@Override
+								public void run() {
+									gameState.getGameInterFace().FinishPlayerTurnHandler(user, param);
+									cancel();
+								}
+							}, 500);
+						}
+
+						(((BaseState) getGameState())).isShowingCard = false;
+					} else {
+						gameState.getGameInterFace().FinishPlayerTurnHandler(user, param);
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	@Override
+	public void CardPickedByUser(User user, CardPickedByUserModel pRoomModel) {
+
+		if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			try {
+				if (playerList.isSpectator(user)) {
+					return;
+				}
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(extension, e);
+				return;
+			}
+		}
+
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			gameState.getGameInterFace().CardPickedByUser(user, pRoomModel);
+		}
+	}
+
+	@Override
+	public void RequestDiscardedCard(User user, RequestDiscardedCardModel param) {
+		IGameState gameState = getGameState_For_User(user);
+
+		if (gameState != null) {
+			gameState.getGameInterFace().RequestDiscardedCard(user, param);
+		}
+	}
+
+	@Override
+	public synchronized boolean ReBuyChipsHandler(User user, RebuyChipsModel param) {
+		if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			try {
+				if (playerList.isSpectator(user)) {
+					return false;
+				}
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(extension, e);
+				return false;
+			}
+		}
+
+		boolean flag = false;
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			flag = gameState.getGameInterFace().ReBuyChipsHandler(user, param);
+		}
+		return flag;
+
+	}
+
+	@Override
+	public void ChatMessageReceived(User user, SendChatMsgModel param) {
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			List<User> users = playerList.getTotalUserListInRoom();
+			eventDispatcher.send_Chat_Message_Event(param.toISFSObj(), users);
+		}
+	}
+
+	@Override
+	public void LashHandRequestHandler(User user, CurrentGameLastHandModel param) {
+		Runnable runnable = () -> {
+			try {
+				ISFSObject tempSfsObj = new SFSObject();
+				List<User> users = new ArrayList<User>();
+				users.add(user);
+				GameResultDataModel tempModel = null;
+				ISFSObject tempDummyCard = new SFSObject();
+				if (listResultGames.size() > 0) {
+					tempModel = listResultGames.get(listResultGames.size() - 1);
+					tempDummyCard = tempModel.dummyCard.toSFSObject();
+				}
+				ISFSArray arrSFSObj = getGameUsersLastHandData(tempModel);
+				tempSfsObj.putSFSObject(Param.DUMMY_CARD, tempDummyCard);
+				tempSfsObj.putSFSArray(Param.GAME_RESULT_USER_LIST, arrSFSObj);
+				eventDispatcher.send_LastHand_Event(tempSfsObj, users);
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(GameExtension.extension, e);
+			}
+		};
+		Thread thread = new Thread(runnable);
+		thread.start();
+	}
+
+	@Override
+	public synchronized boolean ReconnectRequestHandler(User user, ReconnectGameModel param) {
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			gameState.getGameInterFace().ReconnectRequestHandler(user, param);
+		}
+		return true;
+	}
+
+	/**
+	 * get last hand in current room
+	 * 
+	 * @param pGameResultDataModel
+	 * @return
+	 */
+	private ISFSArray getGameUsersLastHandData(GameResultDataModel pGameResultDataModel) {
+
+		ISFSArray tempArrSFS = new SFSArray();
+		if (pGameResultDataModel != null) {
+			for (GameUserInfoModel gameUserInfoModel : pGameResultDataModel.listUserInfo) {
+				ISFSObject sfsObj = new SFSObject();
+				String gameSubType = gameUserInfoModel.gameUser.gameSubtype;
+				String tempUserId = gameUserInfoModel.gameUser.userId;
+				String resultText = gameUserInfoModel.gameUser.resultText;
+				String userName = gameUserInfoModel.gameUser.userName;
+				String userFullName = gameUserInfoModel.gameUser.userFullName;
+				String finalCards = gameUserInfoModel.finalCards;
+				String gameUniqueId = pGameResultDataModel.gameUniqueId;
+				String isGameWinner = gameUserInfoModel.gameUser.getWinner();
+				String gameWinner = "";
+				if (isGameWinner.equalsIgnoreCase(ResultType.TRUE)) {
+					gameWinner = userName;
+				}
+				String gameCount = gameUserInfoModel.gameUser.getGameCount();
+				if ((Float.parseFloat(gameCount) >= 0 && Float.parseFloat(gameCount) <= 1)
+						&& gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+					gameCount = "None";
+				}
+				String totalGameCount = "0";
+				if (gameSubType.equalsIgnoreCase(Constants.GameSubType.BEST_OF_2)
+						|| gameSubType.equalsIgnoreCase(Constants.GameSubType.BEST_OF_3)
+						|| gameSubType.equalsIgnoreCase(Constants.GameSubType.POOL_101)
+						|| gameSubType.equalsIgnoreCase(Constants.GameSubType.POOL_201)) {
+					totalGameCount = gameUserInfoModel.gameUser.getTotalPoolGameCount();
+					if (gameUserInfoModel.gameUser.isRejoin) {
+						gameCount = gameUserInfoModel.gameCountAtRejoin;
+						totalGameCount = gameUserInfoModel.gameTotalCountAtRejoin;
+						// sfsObj.putUtfString(Param.GAME_TOTAL_CHIPS,
+						// totalGameCount);
+					}
+					sfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, totalGameCount);
+
+				} else if (gameSubType.equalsIgnoreCase(Constants.GameSubType.POINTS_RUMMY)
+						|| gameSubType.equalsIgnoreCase(Constants.GameSubType.GUN_SHOT)) {
+					totalGameCount = gameUserInfoModel.gameUser.getGameChips();
+					if (gameUserInfoModel.gameUser.isWinner) {
+						sfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, "+" + totalGameCount);
+					} else {
+						sfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, "-" + totalGameCount);
+					}
+				}
+
+				String tempDealerUserId = gameUserInfoModel.delearUserId;
+				String tempIsDealer = ResultType.FALSE;
+				if (tempUserId.equalsIgnoreCase(tempDealerUserId)) {
+					tempIsDealer = ResultType.TRUE;
+				}
+				sfsObj.putUtfString(Param.IS_DEALER, tempIsDealer);
+				sfsObj.putUtfString(Param.USER_FULL_NAME, userFullName);
+				sfsObj.putUtfString(Param.USER_NAME, userName);
+				sfsObj.putUtfString(Param.RESULT_TEXT, resultText);
+				sfsObj.putUtfString(Param.USER_STATUS, resultText);
+				sfsObj.putUtfString(Param.GAME_WINNER, gameWinner);
+				sfsObj.putUtfString(Param.GAME_COUNT, gameCount);
+				sfsObj.putUtfString(Param.GAME_UNIQUE_ID, gameUniqueId);
+				Logger.getRef().Print(extension, "Last hand game unique id is :- " + gameUniqueId);
+
+				if (!finalCards.isEmpty()) {
+
+					List<Card> tempCardList1 = new ArrayList<Card>();
+					List<Card> tempCardList2 = new ArrayList<Card>();
+					List<Card> tempCardList3 = new ArrayList<Card>();
+					List<Card> tempCardList4 = new ArrayList<Card>();
+					List<Card> tempCardList5 = new ArrayList<Card>();
+					List<Card> tempCardList6 = new ArrayList<Card>();
+
+					String[] arrGroups = finalCards.split("-");
+					for (int i = 0; i < arrGroups.length; i++) {
+						String[] arrCards = arrGroups[i].split(",");
+						for (String tempCardResourceValue : arrCards) {
+							Card tempCard = null;
+							try {
+								if ((gameSubType.equalsIgnoreCase(Constants.GameSubType.BEST_OF_2)
+										|| gameSubType.equalsIgnoreCase(Constants.GameSubType.BEST_OF_3))
+										&& maxPlayers.equalsIgnoreCase(Constants.PlayerSize.MIN_PLAYER)) {
+
+									tempCard = SingleDeck.getRef()
+											.find_Card_By_ResourceValue_For_Single(tempCardResourceValue);
+								} else {
+									tempCard = DoubleDeck.getRef().find_Card_By_ResourceValue(tempCardResourceValue);
+								}
+							} catch (Exception e) {
+								GameException.getRef().printStackTrack(extension, e);
+							}
+							if (tempCard != null) {
+								if (i == 0) {
+									tempCardList1.add(tempCard);
+								} else if (i == 1) {
+									tempCardList2.add(tempCard);
+								} else if (i == 2) {
+									tempCardList3.add(tempCard);
+								} else if (i == 3) {
+									tempCardList4.add(tempCard);
+								} else if (i == 4) {
+									tempCardList5.add(tempCard);
+								} else if (i == 5) {
+									tempCardList6.add(tempCard);
+								}
+							}
+						}
+					}
+
+					ISFSObject tempSFSObjCards = MeldCards.toSFSObj(tempCardList1, tempCardList2, tempCardList3,
+							tempCardList4, tempCardList5, tempCardList6);
+					sfsObj.putSFSObject(Param.CARDS_FOR_RESULT, tempSFSObjCards);
+				}
+				tempArrSFS.addSFSObject(sfsObj);
+			}
+		}
+		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		return tempArrSFS;
+	}
+
+	/**
+	 * history for current room(all played game result-data)
+	 */
+	@Override
+	public void HistoryRequestHandler(User user, CurrentGameHistoryModel param) {
+		Runnable runnable = () -> {
+			try {
+				List<User> users = new ArrayList<User>();
+				users.add(user);
+				// ISFSObject sfsObj = getGameUsersHistory(param.userName);
+
+				ISFSObject sfsObj = new SFSObject();
+				ISFSArray tempArrSFS = getGameUsersHistory(param.userName);
+				sfsObj.putSFSArray(Param.GAME_HISTORY_LIST, tempArrSFS);
+
+				eventDispatcher.send_History_Event(sfsObj, users);
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(GameExtension.extension, e);
+			}
+		};
+		Thread thread = new Thread(runnable);
+		thread.start();
+	}
+
+	/**
+	 * return all played games result list
+	 * 
+	 * @param pUserName
+	 * @return
+	 */
+
+	/*
+	 * private ISFSArray getGameUsersHistory(String pUserName) { ISFSArray
+	 * tempGameArrSFS = SFSArray.newInstance();
+	 * 
+	 * for (GameResultDataModel gameResultDataModel : listResultGames) { ISFSArray
+	 * tempArrSFS = new SFSArray();
+	 * 
+	 * for (GameUserInfoModel userInfoModel : gameResultDataModel.listUserInfo) {
+	 * 
+	 * ISFSObject tempSfsObj = new SFSObject(); String resultText =
+	 * userInfoModel.gameUser.resultText; String userName =
+	 * userInfoModel.gameUser.userName; String userFullName =
+	 * userInfoModel.gameUser.userFullName; String gameCount =
+	 * userInfoModel.gameUser.getGameCount(); String gameUniqueId =
+	 * gameResultDataModel.gameUniqueId;
+	 * 
+	 * String totalGameCount = userInfoModel.gameUser.getGameChips();
+	 * 
+	 * tempSfsObj.putUtfString(Param.USER_NAME, userName);
+	 * tempSfsObj.putUtfString(Param.USER_FULL_NAME, userFullName);
+	 * tempSfsObj.putUtfString(Param.RESULT_TEXT, resultText);
+	 * tempSfsObj.putUtfString(Param.GAME_UNIQUE_ID, gameUniqueId);
+	 * tempSfsObj.putUtfString(Param.GAME_COUNT, gameCount); if
+	 * (userInfoModel.gameUser.isWinner) {
+	 * tempSfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, "+" + totalGameCount); } else
+	 * { tempSfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, "-" + totalGameCount); }
+	 * 
+	 * tempArrSFS.addSFSObject(tempSfsObj);
+	 * 
+	 * } tempGameArrSFS.addSFSArray(tempArrSFS); }
+	 * 
+	 * return tempGameArrSFS;
+	 * 
+	 * }
+	 */
+
+	private ISFSArray getGameUsersHistory(String pUserName) {
+		ISFSArray tempGameArrSFS = SFSArray.newInstance();
+		Map<String, Double> userChipsMap = new HashMap<>(); // To store total chips by user
+
+		// First pass: Accumulate chips
+		for (GameResultDataModel gameResultDataModel : listResultGames) {
+			for (GameUserInfoModel userInfoModel : gameResultDataModel.listUserInfo) {
+				String userName = userInfoModel.gameUser.userName;
+				String totalGameCount = userInfoModel.gameUser.getGameChips();
+				double chips = Double.parseDouble(totalGameCount);
+
+				// Adjust chips based on win/loss
+				if (!userInfoModel.gameUser.isWinner) {
+					chips = -chips; // If not a winner, subtract chips
+				}
+
+				// Accumulate chips in the map
+				userChipsMap.put(userName, userChipsMap.getOrDefault(userName, 0.0) + chips);
+			}
+		}
+
+		
+		for (GameResultDataModel gameResultDataModel : listResultGames) {
+			ISFSArray tempArrSFS = new SFSArray();
+
+			for (GameUserInfoModel userInfoModel : gameResultDataModel.listUserInfo) {
+				ISFSObject tempSfsObj = new SFSObject();
+				String resultText = userInfoModel.gameUser.resultText;
+				String userName = userInfoModel.gameUser.userName;
+				String userFullName = userInfoModel.gameUser.userFullName;
+				String gameCount = userInfoModel.gameUser.getGameCount();
+				String gameUniqueId = gameResultDataModel.gameUniqueId;
+
+				// Get the total chips from the map
+				double totalChips = userChipsMap.get(userName);
+				String totalChipsStr = String.format("%+.2f", totalChips); 
+
+				tempSfsObj.putUtfString(Param.USER_NAME, userName);
+				tempSfsObj.putUtfString(Param.USER_FULL_NAME, userFullName);
+				tempSfsObj.putUtfString(Param.RESULT_TEXT, resultText);
+				tempSfsObj.putUtfString(Param.GAME_UNIQUE_ID, gameUniqueId);
+				tempSfsObj.putUtfString(Param.GAME_COUNT, gameCount);
+				tempSfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, totalChipsStr); 
+
+				tempArrSFS.addSFSObject(tempSfsObj);
+			}
+
+			tempGameArrSFS.addSFSArray(tempArrSFS);
+		}
+
+		return tempGameArrSFS;
+	}
+
+	/*
+	 * private ISFSArray getGameUsersHistory(String pUserName) { ISFSArray
+	 * gameHistoryList = SFSArray.newInstance(); Map<String, Double> totalChipsMap =
+	 * new HashMap<>();
+	 * 
+	 * // Iterate through each game's results for (GameResultDataModel
+	 * gameResultDataModel : listResultGames) { ISFSArray gameArray =
+	 * SFSArray.newInstance();
+	 * 
+	 * for (GameUserInfoModel userInfoModel : gameResultDataModel.listUserInfo) {
+	 * String userName = userInfoModel.gameUser.userName; double gameChips =
+	 * Double.parseDouble(userInfoModel.gameUser.getGameChips());
+	 * 
+	 * // Update the total chips for each user totalChipsMap.put(userName,
+	 * totalChipsMap.getOrDefault(userName, 0.0) + gameChips);
+	 * 
+	 * ISFSObject gameResultObj = new SFSObject();
+	 * gameResultObj.putUtfString(Param.USER_NAME, userName);
+	 * gameResultObj.putUtfString(Param.USER_FULL_NAME,
+	 * userInfoModel.gameUser.userFullName);
+	 * gameResultObj.putUtfString(Param.RESULT_TEXT,
+	 * userInfoModel.gameUser.resultText);
+	 * gameResultObj.putUtfString(Param.GAME_UNIQUE_ID,
+	 * gameResultDataModel.gameUniqueId);
+	 * gameResultObj.putUtfString(Param.GAME_COUNT,
+	 * userInfoModel.gameUser.getGameCount());
+	 * 
+	 * gameResultObj.putUtfString(Param.GAME_TOTAL_CHIPS,
+	 * String.valueOf(gameChips)); // Current game chips
+	 * gameResultObj.putUtfString(Param.GAME_TOTAL_CHIPS_NEW,
+	 * String.valueOf(totalChipsMap.get(userName))); // Total // chips // so // far
+	 * 
+	 * gameArray.addSFSObject(gameResultObj); }
+	 * 
+	 * // Add the game result array to the main game history list
+	 * gameHistoryList.addSFSArray(gameArray); }
+	 * 
+	 * logGameHistoryResponse(gameHistoryList); // Log the response
+	 * 
+	 * return gameHistoryList; }
+	 */
+
+	/*
+	 * private void logGameHistoryResponse(ISFSArray gameHistory) { StringBuilder
+	 * logOutput = new StringBuilder();
+	 * logOutput.append(getCurrentTimestamp()).append(
+	 * " INFO  [Thread-1180] Extensions - {demo}: GameEventDispatcher :::: SendEvent :::: Event :::: GET_HISTORY ::: Response ::: \n"
+	 * ); logOutput.append("        (sfs_array) GAME_HISTORY_LIST: \n");
+	 * 
+	 * for (int i = 0; i < gameHistory.size(); i++) { ISFSArray gameArray =
+	 * gameHistory.getSFSArray(i);
+	 * logOutput.append("                 (sfs_array) \n"); for (int j = 0; j <
+	 * gameArray.size(); j++) {
+	 * logOutput.append("                         (sfs_object) \n"); ISFSObject
+	 * gameResult = gameArray.getSFSObject(j); logOutput.
+	 * append("                                (utf_string) USER_FULL_NAME: ")
+	 * .append(gameResult.getUtfString(Param.USER_FULL_NAME)).append("\n");
+	 * logOutput.
+	 * append("                                (utf_string) GAME_UNIQUE_ID: ")
+	 * .append(gameResult.getUtfString(Param.GAME_UNIQUE_ID)).append("\n");
+	 * logOutput.
+	 * append("                                (utf_string) GAME_TOTAL_CHIPS: ")
+	 * .append(gameResult.getUtfString(Param.GAME_TOTAL_CHIPS)).append("\n");
+	 * logOutput.append("                                (utf_string) GAME_COUNT: ")
+	 * .append(gameResult.getUtfString(Param.GAME_COUNT)).append("\n");
+	 * logOutput.append("                                (utf_string) USER_NAME: ")
+	 * .append(gameResult.getUtfString(Param.USER_NAME)).append("\n");
+	 * logOutput.append("                                (utf_string) RESULT_TEXT: "
+	 * ) .append(gameResult.getUtfString(Param.RESULT_TEXT)).append("\n");
+	 * logOutput.
+	 * append("                                (utf_string) GAME_TOTAL_CHIPS_NEW: ")
+	 * .append(gameResult.getUtfString(Param.GAME_TOTAL_CHIPS_NEW)).append("\n"); }
+	 * }
+	 * 
+	 * // Additional game info
+	 * logOutput.append("        (utf_string) GAME_CATEGORY_TYPE: \n");
+	 * logOutput.append("        (utf_string) GAME_UNIQUE_ID: 00001155\n");
+	 * logOutput.append("        (utf_string) ROOM_NAME: TB00001151\n");
+	 * logOutput.append("        (utf_string) TOURNAMENT_ID: \n");
+	 * 
+	 * System.out.println(logOutput.toString()); }
+	 * 
+	 * private String getCurrentTimestamp() { SimpleDateFormat sdf = new
+	 * SimpleDateFormat("HH:mm:ss,SSS"); return sdf.format(new Date()); }
+	 */
+
+	/*
+	 * private ISFSObject getGameUsersHistory(String pUserName) { String totalChips
+	 * = "0";
+	 * 
+	 * ISFSObject tempSfshistoryobj = SFSObject.newInstance(); ISFSArray tempArrSFS
+	 * = new SFSArray();
+	 * 
+	 * for (GameResultDataModel gameResultDataModel : listResultGames) {
+	 * GameUserInfoModel userInfoModel =
+	 * gameResultDataModel.getGameUserInfoByUserName(pUserName); if (userInfoModel
+	 * != null) { ISFSObject tempSfsObj = new SFSObject(); String resultText =
+	 * userInfoModel.gameUser.resultText; String gameCount =
+	 * userInfoModel.gameUser.getGameCount(); String gameUniqueId =
+	 * gameResultDataModel.gameUniqueId;
+	 * 
+	 * String totalGameCount = userInfoModel.gameUser.getGameChips(); if
+	 * (userInfoModel.gameUser.isWinner) {
+	 * tempSfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, "+" + totalGameCount);
+	 * totalChips = StringNumbers.getRef().Float_Addition_Of_Strings(totalChips,
+	 * totalGameCount); } else { tempSfsObj.putUtfString(Param.GAME_TOTAL_CHIPS, "-"
+	 * + totalGameCount); totalChips =
+	 * StringNumbers.getRef().Float_Deduction_Of_Strings(totalChips,
+	 * totalGameCount); }
+	 * 
+	 * tempSfsObj.putUtfString(Param.RESULT_TEXT, resultText);
+	 * tempSfsObj.putUtfString(Param.GAME_UNIQUE_ID, gameUniqueId);
+	 * tempSfsObj.putUtfString(Param.GAME_COUNT, gameCount);
+	 * 
+	 * tempArrSFS.addSFSObject(tempSfsObj); } }
+	 * 
+	 * tempSfshistoryobj.putUtfString(Param.GAME_NET_CHIPS, totalChips);
+	 * tempSfshistoryobj.putSFSArray(Param.GAME_HISTORY_LIST, tempArrSFS); return
+	 * tempSfshistoryobj; }
+	 */
+	@Override
+	public synchronized boolean RejoinGameHandler(User user, RejoinGameModel param) {
+		if (!gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			try {
+				if (playerList.isSpectator(user)) {
+					return false;
+				}
+			} catch (Exception e) {
+				GameException.getRef().printStackTrack(extension, e);
+				return false;
+			}
+		}
+
+		boolean flag = false;
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+
+			flag = gameState.getGameInterFace().RejoinGameHandler(user, param);
+		}
+		return flag;
+	}
+
+	@Override
+	public synchronized boolean JoinBackRequestHandler(User user, JoinBackModel param) {
+
+		try {
+			if (playerList.isSpectator(user)) {
+				return false;
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(extension, e);
+			return false;
+		}
+		boolean flag = false;
+		IGameState gameState = getGameState_For_User(user);
+
+		if (gameState != null) {
+			flag = gameState.getGameInterFace().JoinBackRequestHandler(user, param);
+		}
+
+		return flag;
+	}
+
+	/// RematchRequestHandler
+	@Override
+	public synchronized void RematchRequestHandler(User user, RematchRequestModel param) {
+		try {
+			if (playerList.isSpectator(user)) {
+				return;
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(extension, e);
+			return;
+		}
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			gameState.getGameInterFace().RematchRequestHandler(user, param);
+		}
+	}
+
+	/// AcceptRematchRequestHandler
+	@Override
+	public synchronized void AcceptRematchRequestHandler(User user, AcceptRematchRequestModel param) {
+		try {
+			if (playerList.isSpectator(user)) {
+				return;
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(extension, e);
+			return;
+		}
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			gameState.getGameInterFace().AcceptRematchRequestHandler(user, param);
+		}
+	}
+
+	@Override
+	public synchronized void SaveBetAndSplitRequestHandler(User user, SaveBetAndSplitModel param) {
+		try {
+			if (playerList.isSpectator(user)) {
+				return;
+			}
+		} catch (Exception e) {
+			GameException.getRef().printStackTrack(extension, e);
+			return;
+
+		}
+		IGameState gameState = getGameState_For_User(user);
+		if (gameState != null) {
+			gameState.getGameInterFace().SaveBetAndSplitRequestHandler(user, param);
+		}
+	}
+
+	@Override
+	public synchronized boolean playerEligibleForReconnect(String pUserName) {
+		User tempUser = Utils.GameUtil.getUserByZone(zone, pUserName);
+		IGameState gameState = getGameState_For_User(tempUser);
+
+		if ((gameState != null && !gameState.getClass().equals(PRPlayerWaitingState.class)
+				&& !gameState.getClass().equals(GSPlayerWaitingState.class)
+				&& !gameState.getClass().equals(PLPlayerWaitingState.class)
+				&& !gameState.getClass().equals(DRPlayerWaitingState.class))) {
+
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public Card getDummyCard() {
+		return mGameCards.getDummyCard();
+	}
+
+	@Override
+	public Card getLastDiscardCard() {
+		Card tempCard = mGameCards.getLastDiscardCard();
+		if (tempCard == null) {
+			tempCard = new Card(SUITS.NONE, CARDS.NONE);
+		}
+		return tempCard;
+	}
+
+	@Override
+	public long getStateTimer() {
+		return ((BaseState) getGameState()).rTimer.getElapsedTime();
+	}
+
+	/**
+	 * return elapsed seconds in game
+	 * 
+	 * @return
+	 */
+	public long getGameTimer() {
+		return rGameTimer.getElapsedTime();
+	}
+
+	/**
+	 * return game-unique-id(multiple game may be played in single room and each
+	 * game have unique-game-id)
+	 * 
+	 * @return game-unique-id
+	 */
+	public String getGameUniqueId() {
+		String tempGameUniqueId = gameUniqueId.getID();
+		if (tempGameUniqueId == null) {
+			tempGameUniqueId = "";
+		}
+		return tempGameUniqueId;
+	}
+
+	public int getCurrentGameCounter() {
+		return gameCounter.getGameCounter();
+	}
+
+	/**
+	 * return game win prize after deduction of admin commission
+	 * 
+	 * @return
+	 */
+	public String getGameWinPrize() {
+		String tempWinPrize = ((BaseState) getGameState()).prize;
+		if (tempWinPrize != null && !tempWinPrize.isEmpty()) {
+			tempWinPrize = scoreCalculator.calculate_WINPRIZE_AfterFirstRummy_Commision(tempWinPrize);
+		} else {
+			tempWinPrize = "";
+		}
+		return tempWinPrize;
+	}
+
+	@Override
+	public Room getRoom() {
+		return room;
+	}
+
+	@Override
+	public Card getPickCardForUser(String pUserName) {
+		GameUser tempGameUser = playerList.getGamePlayerByUserName(pUserName);
+		Card tempCard = null;
+		if (tempGameUser != null) {
+			tempCard = tempGameUser.pickedCard;
+		}
+
+		if (tempCard == null) {
+			tempCard = new Card(SUITS.NONE, CARDS.NONE);
+		}
+		return tempCard;
+	}
+
+	@Override
+	public ISFSObject getCardGroupsForUser(String pUserName) {
+		GameUser tempGameUser = playerList.getGamePlayerByUserName(pUserName);
+		ISFSObject tempCardSFSObj = new SFSObject();
+		tempCardSFSObj.putSFSArray(Param.GROUP_1, new SFSArray());
+		tempCardSFSObj.putSFSArray(Param.GROUP_2, new SFSArray());
+		tempCardSFSObj.putSFSArray(Param.GROUP_3, new SFSArray());
+		tempCardSFSObj.putSFSArray(Param.GROUP_4, new SFSArray());
+		tempCardSFSObj.putSFSArray(Param.GROUP_5, new SFSArray());
+		tempCardSFSObj.putSFSArray(Param.GROUP_6, new SFSArray());
+
+		if (tempGameUser != null) {
+			tempCardSFSObj = tempGameUser.meldCards.toSFSObj();
+		}
+
+		return tempCardSFSObj;
+	}
+
+	@Override
+	public ISFSArray getUpdatedPlayerList() {
+		ISFSArray playerSFSArr = playerList.getGamePlayerSFSArray();
+		return playerSFSArr;
+	}
+
+	/**
+	 * return updated player-list for reconnect users
+	 * 
+	 * @return
+	 */
+	public ISFSArray getUpdatedPlayerListForReconnect() {
+		ISFSArray playerSFSArr = playerList.getGamePlayerSFSArray();
+
+		IGameState gameState = getGameState();
+		if (gameState != null && !gameState.getClass().equals(PRPlayerTurnState.class)
+				&& !gameState.getClass().equals(DRPlayerTurnState.class)
+				&& !gameState.getClass().equals(PLPlayerTurnState.class)
+				&& !gameState.getClass().equals(GSPlayerTurnState.class)
+				&& !gameState.getClass().equals(TRPlayerTurnState.class)
+		/*
+		 * || !gameState .getClass().equals(PRWaitingResultState.class) &&
+		 * !gameState.getClass().equals(DRWaitingResultState.class) && !gameState
+		 * .getClass().equals(PLWaitingResultState.class) &&!gameState
+		 * .getClass().equals(GSWaitingResultState.class) && !gameState
+		 * .getClass().equals(com.rummy.game.tournament.states.TRMainWaitingResultState.
+		 * TRWaitingResultState.class)
+		 */) {
+			/*
+			 * for (int i = 0; i < playerSFSArr.size(); i++) { ISFSObject tempISFSObj =
+			 * playerSFSArr.getSFSObject(i);
+			 * tempISFSObj.putUtfString(Constants.Param.USER_STATUS, UserStatus.ACTIVE); }
+			 */
+		}
+		return playerSFSArr;
+	}
+
+	/**
+	 * return game-user by user-name
+	 * 
+	 * @param pUserName
+	 * @return
+	 */
+	public GameUser getGameUserByName(String pUserName) {
+		return playerList.getGamePlayerByUserName(pUserName);
+	}
+
+	/**
+	 * return current game-state for user
+	 * 
+	 * @param pUser
+	 * @return
+	 */
+	public IGameState getGameState_For_User(User pUser) {
+		IGameState tempGameState = null;
+		boolean isPlayerExist = playerList.isPlayerExistInGame(pUser);
+		if (isPlayerExist) {
+			tempGameState = getGameState();
+		}
+		return tempGameState;
+	}
+
+	/**
+	 * check if player exist or eliminated from game
+	 * 
+	 * @param pUserName
+	 * @return
+	 */
+	public boolean isPlayerExistInGame(String pUserName) {
+		return playerList.isPlayerExistInGame(pUserName);
+	}
+
+	protected void setPlayerWaitState() {
+
+		IGameState tempState = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainPlayerWaitingState.createState(null);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainPlayerWaitingState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainPlayerWaitingState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainPlayerWaitingState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainPlayerWaitingState.createState(null);
+			}
+		}
+		changeStateTo(tempState);
+	}
+
+	protected void setGameWaitState() {
+
+		IGameState tempState = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainGameWaitingState.createState(null);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainGameWaitingState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainGameWaitingState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainGameWaitingState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainGameWaitingState.createState(null);
+			}
+		}
+		changeStateTo(tempState);
+	}
+
+	protected void setCutForSeatState() {
+		IGameState tempState = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainCutForSeatState.createState(null);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainCutForSeatState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainCutForSeatState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainCutForSeatState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainCutForSeatState.createState(null);
+			}
+		}
+		changeStateTo(tempState);
+	}
+
+	protected void setDistributeCardState() {
+		rGameTimer.resetTimer();
+		IGameState tempState = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainDistributeCardState.createState(null);
+		} else {
+
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainDistributeCardState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainDistributeCardState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainDistributeCardState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainDistributeCardState.createState(null);
+			}
+		}
+		changeStateTo(tempState);
+	}
+
+	public void setPlayerTurnState() {
+
+		IGameState tempState = null;
+
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainPlayerTurnState.createState(null);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainPlayerTurnState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainPlayerTurnState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainPlayerTurnState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainPlayerTurnState.createState(null);
+			}
+		}
+
+		changeStateTo(tempState);
+	}
+
+	public void setWaitingResultState() {
+		IGameState tempState = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainWaitingResultState.createState(null);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainWaitingResultState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainWaitingResultState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainWaitingResultState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainWaitingResultState.createState(null);
+			}
+		}
+		changeStateTo(tempState);
+	}
+
+	protected void setResultState() {
+		IGameState tempState = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainResultState.createState(null);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainResultState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainResultState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainResultState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainResultState.createState(null);
+			}
+		}
+		changeStateTo(tempState);
+	}
+
+	protected void setWaitingNextGameState() {
+		IGameState tempState = null;
+		if (gameCatType.equalsIgnoreCase(GameType.TOURNAMENT)) {
+			tempState = TRMainWaitingNextGameState.createState(null);
+		} else {
+			if (gameSubtype.equalsIgnoreCase(GameSubType.POINTS_RUMMY)) {
+				tempState = PRMainWaitingNextGameState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_2)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.BEST_OF_3)) {
+				tempState = DRMainWaitingNextGameState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.POOL_101)
+					|| gameSubtype.equalsIgnoreCase(GameSubType.POOL_201)) {
+				tempState = PLMainWaitingNextGameState.createState(null);
+			} else if (gameSubtype.equalsIgnoreCase(GameSubType.GUN_SHOT)) {
+				tempState = GSMainWaitingNextGameState.createState(null);
+			}
+		}
+		changeStateTo(tempState);
+	}
+
+	void changeStateTo(IGameState pGameState) {
+		rTimer.resetTimer();
+		ChangeState(pGameState);
+	}
+
+	/**
+	 * reset any state to player-waiting-state if player-list size is 1
+	 * 
+	 * @return
+	 */
+	protected boolean validatePlayerWaitState() {
+		boolean isResetState = false;
+		List<GameUser> users = playerList.getGamePlayerList();
+
+		if (users.size() == 1) {
+			isResetState = true;
+		}
+		return isResetState;
+	}
+
+	/**
+	 * check if all-players finished result(card submitted by all-players in
+	 * meld-card state)
+	 * 
+	 * @return
+	 */
+	protected boolean isPlayersFinishedResult() {
+
+		boolean isAllUserFinishedResult = true;
+		for (GameUser tempGameUser : playerList.getGamePlayerList()) {
+			if (tempGameUser.userStatus.equalsIgnoreCase(UserStatus.ACTIVE)
+					&& tempGameUser.userConnectionStatus == UserGameConnectionStatus.CONNECTED) {
+				isAllUserFinishedResult = false;
+				break;
+			} else if (tempGameUser.userStatus.equalsIgnoreCase(UserStatus.HALF_DROP)
+					&& tempGameUser.userConnectionStatus == UserGameConnectionStatus.CONNECTED
+					&& !tempGameUser.isHalfDropFinishResult) {
+				isAllUserFinishedResult = false;
+				break;
+			}
+		}
+		return isAllUserFinishedResult;
+	}
+
+	/**
+	 * set result-state for delay
+	 * 
+	 * @param pGameState
+	 * @param pDelay
+	 */
+	protected void delayedStateCall(IGameState pGameState, long pDelay) {
+
+		new java.util.Timer().schedule(new java.util.TimerTask() {
+			@Override
+			public void run() {
+				setResultState();
+				cancel();
+			}
+		}, pDelay);
+	}
+
+	@Override
+	public String toString() {
+		return "Game [zone=" + zone + ", extension=" + extension + ", gameApi=" + gameApi + ", room=" + room
+				+ ", tableId=" + tableId + ", roomName=" + roomName + ", gameType=" + gameType + ", gameCatType="
+				+ gameCatType + ", gameSubtype=" + gameSubtype + ", bet=" + bet + ", fixedPrize=" + fixedPrize
+				+ ", prize=" + prize + ", minBuyIn=" + minBuyIn + ", minPlayers=" + minPlayers + ", maxPlayers="
+				+ maxPlayers + ", gameTypeId=" + gameTypeId + ", groupId=" + groupId + ", rTimer=" + rTimer
+				+ ", rGameTimer=" + rGameTimer + ", playerList=" + playerList + ", eventDispatcher=" + eventDispatcher
+				+ ", gameTable=" + gameTable + ", mGameCards=" + mGameCards + ", gameUniqueId=" + gameUniqueId
+				+ ", scoreCalculator=" + scoreCalculator + ", autoPlayAI=" + autoPlayAI + ", autoPlay=" + autoPlay
+				+ ", gameCounter=" + gameCounter + ", listResultGames=" + listResultGames + ", stateLastResponseTurn="
+				+ stateLastResponseTurn + ", stateLastResponsePickCard=" + stateLastResponsePickCard
+				+ ", stateLastResponseResult=" + stateLastResponseResult + ", updateUserStatus=" + updateUserStatus
+				+ ", gameTurnUser=" + gameTurnUser + "]";
+	}
+}

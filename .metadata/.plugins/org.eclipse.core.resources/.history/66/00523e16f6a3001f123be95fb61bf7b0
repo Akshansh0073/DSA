@@ -1,0 +1,180 @@
+package com.rummy.extension.base;
+
+import com.rummy.common.AdminConfigData;
+import com.rummy.common.Constants;
+import com.rummy.common.Constants.ClientRequestType;
+import com.rummy.extension.client.AvatarListEventHandler;
+import com.rummy.extension.client.BonusHistoryRequest;
+import com.rummy.extension.client.CollectRewardPoints;
+import com.rummy.extension.client.Deposit_History_Request_Handler;
+import com.rummy.extension.client.GetBankDetailsRequestHandler;
+import com.rummy.extension.client.GetCitiesEventHandler;
+import com.rummy.extension.client.GetRoomList;
+import com.rummy.extension.client.GetUserInfoRequestHandler;
+import com.rummy.extension.client.InsertBankDetailsRequestHandler;
+import com.rummy.extension.client.LeaderBoard_Request_Handler;
+import com.rummy.extension.client.OtpSendSocialRequestHandler;
+import com.rummy.extension.client.OtpVerifyRequestHandler;
+import com.rummy.extension.client.Redeem_Chips_Request_Handler;
+import com.rummy.extension.client.Redeem_History_Request_Handler;
+import com.rummy.extension.client.ResendOtpRequestHandler;
+import com.rummy.extension.client.RewardPointshistory;
+import com.rummy.extension.client.UploadFileEventHandler;
+import com.rummy.extension.client.UserCurrentLocationRequestHandler;
+import com.rummy.extension.client.UserDailyFunChipsRequest;
+import com.rummy.extension.client.UserGameLogsRequest;
+import com.rummy.extension.client.UserInviteFriendRequest;
+import com.rummy.extension.client.UserKYCPreCheckRequestHandler;
+import com.rummy.extension.client.UserLoginRequestHandler;
+import com.rummy.extension.client.UserLogoutRequestHandler;
+import com.rummy.extension.client.UserPANRequestHandler;
+import com.rummy.extension.client.UserProfileImageEditRequestHandler;
+import com.rummy.extension.client.UserRgistrationRequestHandler;
+import com.rummy.extension.client.UserUpdateAddressEventHandler;
+import com.rummy.extension.client.UserUpdateProfileEventHandler;
+import com.rummy.extension.client.UserUpiRequestHandler;
+import com.rummy.extension.client.VerifyUserHandler;
+import com.rummy.extension.client.WithdrawlAmountMessageHandler;
+import com.rummy.extension.game.AcceptRematchRequestHandler;
+import com.rummy.extension.game.CancelTournamentRegistration;
+import com.rummy.extension.game.CardPickRequestHandler;
+import com.rummy.extension.game.ChangePasswordRequestHandler;
+import com.rummy.extension.game.CreatePrivateTableRequestHandler;
+import com.rummy.extension.game.DiscardedCardRequestHandler;
+import com.rummy.extension.game.DropRequestHandler;
+import com.rummy.extension.game.FindPrivateTableRequestHandler;
+import com.rummy.extension.game.FinishPlayerTurnRequestHandler;
+import com.rummy.extension.game.GetGameSettings;
+import com.rummy.extension.game.GetGroupInfoRequestHandler;
+import com.rummy.extension.game.GetHistoryRequestHandler;
+import com.rummy.extension.game.GetInPlayChipsRequestHandler;
+import com.rummy.extension.game.GetLashHandRequestHandler;
+import com.rummy.extension.game.GetPrivateTableListRequestHandler;
+import com.rummy.extension.game.GetStatesEventHandler;
+import com.rummy.extension.game.GetTournamentList;
+import com.rummy.extension.game.GetTournamentModelRequestHandler;
+import com.rummy.extension.game.InviteUsersInPrivateTableRequestHandler;
+import com.rummy.extension.game.JoinBackRequestHandler;
+import com.rummy.extension.game.JoinPrivateTableRequestHandler;
+import com.rummy.extension.game.JoinRoomRequestHandler;
+import com.rummy.extension.game.LeaveRoomRequestHandler;
+import com.rummy.extension.game.PingPongRequestHandler;
+import com.rummy.extension.game.PlayForCashHandler;
+import com.rummy.extension.game.PlayForFunHandler;
+import com.rummy.extension.game.ReBuyChipsRequestHandler;
+import com.rummy.extension.game.ReconnectGameRequestHandler;
+import com.rummy.extension.game.RefreshPlayChipsRequestHandler;
+import com.rummy.extension.game.RegisterPlayerInTournamentRequestHandler;
+import com.rummy.extension.game.RejoinGameRequestHandler;
+import com.rummy.extension.game.RematchRequestHandler;
+import com.rummy.extension.game.ReportAProblemRequestHandler;
+import com.rummy.extension.game.ResultCardRequestHandler;
+import com.rummy.extension.game.SaveBetAndSplitRequestHandler;
+import com.rummy.extension.game.SendChatMessageRequestHandler;
+import com.rummy.extension.game.ShowCardRequestHandler;
+import com.rummy.extension.game.SpectatorJoinRoomRequestHandler;
+import com.rummy.extension.game.TournamentLeaderBoardRequestHandler;
+import com.rummy.extension.game.TournamentLevelDataRequestHandler;
+import com.rummy.extension.game.TournamentTablesDetailRequestHandler;
+import com.rummy.extension.game.UnRegisterPlayerInTournament;
+import com.rummy.extension.game.UpdateGameSettings;
+import com.rummy.extension.game.UpdateUserTableSettings;
+import com.rummy.extension.server.PlayerToSpectatorEventHandler;
+import com.rummy.extension.server.RoomAddedEventHandler;
+import com.rummy.extension.server.RoomRemovedEventHandler;
+import com.rummy.extension.server.RoomVariableUpdateEventHandler;
+import com.rummy.extension.server.ServerReadyEventHandler;
+import com.rummy.extension.server.SpectatorToPlayerEventHandler;
+import com.rummy.extension.server.UserDisconnectEventHandler;
+import com.rummy.extension.server.UserJoinRoomEventHandler;
+import com.rummy.extension.server.UserJoinZoneEventHandler;
+import com.rummy.extension.server.UserLeaveRoomEventHandler;
+import com.rummy.extension.server.UserLoginEventHandler;
+import com.rummy.extension.server.UserLogoutEventHandler;
+import com.rummy.extension.server.UserReconnectionSuccessEventHandler;
+import com.rummy.extension.server.UserReconnectionTryEventHandler;
+import com.rummy.extension.server.UserVariablesUpdateEventHandler;
+import com.smartfoxserver.v2.SmartFoxServer;
+import com.smartfoxserver.v2.core.SFSEventType;
+import com.smartfoxserver.v2.entities.data.ISFSObject;
+
+/***
+ * 
+ * @author manish
+ *         <p>
+ *         Main Extension class .
+ *         </p>
+ */
+///////////////
+public class GameExtension extends BaseGameExtension {
+
+	///////////////////////
+
+	public static GameExtension extension;
+
+	public GameExtension() {
+	}
+	//////////////////////////////////////
+
+	@Override
+	void init(BaseGameExtension extention) {
+		extension = this;
+	}
+
+	///////////////////
+	@Override
+	void onServer() {
+		/***
+		 * server user-events handler
+		 */
+		addEventHandler(SFSEventType.SERVER_READY, ServerReadyEventHandler.class);
+		addEventHandler(SFSEventType.USER_JOIN_ROOM, UserJoinRoomEventHandler.class);
+		addEventHandler(SFSEventType.USER_LEAVE_ROOM, UserLeaveRoomEventHandler.class);
+		addEventHandler(SFSEventType.USER_LOGOUT, UserLogoutEventHandler.class);
+		addEventHandler(SFSEventType.USER_LOGIN, UserLoginEventHandler.class);
+		addEventHandler(SFSEventType.USER_DISCONNECT, UserDisconnectEventHandler.class);
+		addEventHandler(SFSEventType.USER_JOIN_ZONE, UserJoinZoneEventHandler.class);
+
+		addEventHandler(SFSEventType.USER_RECONNECTION_SUCCESS, UserReconnectionSuccessEventHandler.class);
+		addEventHandler(SFSEventType.USER_RECONNECTION_TRY, UserReconnectionTryEventHandler.class);
+		addEventHandler(SFSEventType.USER_VARIABLES_UPDATE, UserVariablesUpdateEventHandler.class);
+		addEventHandler(SFSEventType.FILE_UPLOAD, UploadFileEventHandler.class);
+
+		/***
+		 * server room-events handler
+		 */
+		addEventHandler(SFSEventType.ROOM_ADDED, RoomAddedEventHandler.class);
+		addEventHandler(SFSEventType.ROOM_REMOVED, RoomRemovedEventHandler.class);
+		addEventHandler(SFSEventType.ROOM_VARIABLES_UPDATE, RoomVariableUpdateEventHandler.class);
+
+		/***
+		 * server spectator-events handler
+		 */
+		addEventHandler(SFSEventType.SPECTATOR_TO_PLAYER, SpectatorToPlayerEventHandler.class);
+		addEventHandler(SFSEventType.PLAYER_TO_SPECTATOR, PlayerToSpectatorEventHandler.class);
+	}
+
+	@Override
+
+	@Override
+	void onUpdateTaskHandler() {
+		SmartFoxServer sfs = SmartFoxServer.getInstance();
+		updateTaskHandler.startGameUpdateTaskHandler(sfs);
+		updateTaskHandler.startTournamentUpdateTaskHandler(sfs);
+		updateTaskHandler.startUpdateTaskHandler(sfs);
+
+		if (AdminConfigData.getInstanse().isBotEnabled()) {
+			updateTaskHandler.startUpdate_BOT_Data_TaskHandler(sfs);
+			// updateTaskHandler.start_BOT_PlayerWaitingState_Manager_TaskHandler(sfs);
+		}
+
+		updateTaskHandler.startTournamentStatusUpdateTaskHandler(sfs);
+		updateTaskHandler.startGCTaskHandler(sfs);
+		// tournamentManager.RunTournamentThread();
+	}
+
+	@Override
+	public Object onTrigger(String pCmd, ISFSObject pSFSObj) {
+		return phpTriggers.handlePhpTriggers(pCmd, pSFSObj);
+	}
+}
