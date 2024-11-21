@@ -47,19 +47,36 @@ public class LinkedListProblems {
 	}
 
 	private static Node sortedList(Node head) {
-		ArrayList <Integer> dataList = new ArrayList();
-		Node temp = head;
+//		ArrayList <Integer> dataList = new ArrayList();
+//		Node temp = head;
+//		while(temp!=null) {
+//			dataList.add(temp.data);
+//			temp = temp.next;
+//		}
+//		Collections.sort(dataList);
+//		 temp = head;
+//		for(int data:dataList) {
+//			temp.data = data;
+//			temp=temp.next;
+//		}
+//		return head;
+		
+		ArrayList <Integer> data = new ArrayList<>();
+		Node temp =head;
 		while(temp!=null) {
-			dataList.add(temp.data);
-			temp = temp.next;
-		}
-		Collections.sort(dataList);
-		 temp = head;
-		for(int data:dataList) {
-			temp.data = data;
+			data.add(temp.data);
 			temp=temp.next;
 		}
+		
+		Collections.sort(data);
+		temp = head;
+			for(int i=0;i<data.size();i++) {
+				temp.data = data.get(i);
+				temp=temp.next;
+			}
+		
 		return head;
+		
 	}
 
 	private static Node deletedList(Node head,int target) {
@@ -69,7 +86,7 @@ public class LinkedListProblems {
 		
 		Node prev = null;
 		Node curr = head;
-		while(curr!=null && curr.data !=target) {
+		while(curr != null && curr.data != target) {
 			prev = curr;
 			curr=curr.next;
 		}
